@@ -24,7 +24,6 @@ AgentPad is not a shadow pad or duplicate memory. It is the single source of tru
 
 * Treat the JSON as a **schema upgrade**.
 * Refactor your existing data:
-
   * **Update** fields that conflict with schema defaults.
   * **Add** missing keys.
   * **Preserve** any runtime-acquired values from user interaction.
@@ -52,9 +51,10 @@ This is the schema. Format may be adjusted temporarily during upgrades, but shou
 {
   "AgentPad": {
     "metadata": {
-      "version": "v1.3.1",
+      "version": "v1.4",
       "timezone": "America/New_York",
-      "purpose": "Persistent, AGENT-only operational memory. Survives reboot/session loss.",
+      "purpose": "Persistent,AGENT-only operational memory.Survives reboot/session loss.",
+      "version_control": "GitHub/MNSweet/AI-Governance",
       "access": {
         "agent": "full_read_write",
         "user": "read_only_unless_explicit_instruction"
@@ -84,8 +84,8 @@ This is the schema. Format may be adjusted temporarily during upgrades, but shou
           "associated_with": "Keyword or phrase denoting relation",
           "checksum": "sha256:",
           "on_disk": "stored | mising | expired",
-          "last_disk_check": "YYYY-MM-DDTHH:mm:ss.sss-LocalOffset",
-          "last_missing_file_notice": " | YYYY-MM-DDTHH:mm:ss.sss-LocalOffset",
+          "last_disk_check": "YYYY-MM-DDTHH:mm:ss.sssZ",
+          "last_missing_file_notice": " | YYYY-MM-DDTHH:mm:ss.sssZ",
           "_onMissing": "request_restore | request_if_context_requires_rescan | request_if_ask_about_file | lapse"
         }
       ],
