@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Paper-to-Podcast Protocol • Config Wizard (v1.7)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="color-scheme" content="light dark">
+	<style>
+		:root {
+			--bg: #0d0f12;
+			--fg: #e7eaf0;
+			--muted: #a7b0bd;
+			--card: #151922;
+			--border: #2a3140;
+			--accent: #5aa9ff;
+			--danger: #ff5a7a;
+			--focus: #ffd166;
+		}
+		@media (prefers-color-scheme: light) {
+			:root {
+				--bg: #ffffff;
+				--fg: #11151a;
+				--muted: #4d5561;
+				--card: #f6f8fb;
+				--border: #d8dee6;
+				--accent: #005fcc;
+				--danger: #b00020;
+				--focus: #7a5900;
+			}
+		}
+		* { box-sizing: border-box; }
+		html, body { height: 100%; }
+		body {
+			margin: 0;
+			font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+			background: var(--bg);
+			color: var(--fg);
+			line-height: 1.5;
+		}
+		.container { max-width: 1000px; margin: 0 auto; padding: 1rem; }
+		.site-header { margin: 1rem 0; }
+		.subtitle { color: var(--muted); margin-top: .25rem; }
+		.card {
+			background: var(--card);
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			padding: 1rem;
+			margin-bottom: 1rem;
+		}
+		hr {
+			border: 0;
+			border-top: 1px solid var(--border);
+			padding: .5rem;
+		}
+		legend { padding: 0 .5rem; font-weight: 600; }
+		label { display: block; margin-bottom: .75rem; }
+		.block-label { margin-bottom: .5rem; font-weight: 600; }
+		.inline { display: inline-flex; gap: .5rem; align-items: center; margin-right: 1rem; }
+		input[type="text"], input[type="number"], select, textarea {
+			width: 100%; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--fg);
+		}
+		input[readonly], textarea[readonly] { opacity: .85; }
+		textarea.mono, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+		button { appearance: none; border: 1px solid var(--border); background: var(--accent); color: #fff; padding: .6rem .9rem; border-radius: 8px; cursor: pointer; }
+		button.secondary { background: transparent; color: var(--fg); }
+		button:focus, input:focus, select:focus, textarea:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+		.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+		.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+		.row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+		.stack { display: grid; gap: .5rem; }
+		.hidden { display: none !important; }
+		.small { font-size: .9rem; color: var(--muted); }
+		.segment-list { display: grid; gap: .35rem; }
+		.segment-list label { margin: 0; }
+		.kv { width: 100%; border-collapse: collapse; }
+		.kv th, .kv td { border: 1px solid var(--border); padding: .5rem; vertical-align: top; }
+		.kv td .row { gap: .5rem; }
+		.kv .error { color: var(--danger); margin-top: .25rem; }
+		.status { min-height: 1.2em; color: var(--muted); }
+		.site-footer { color: var(--muted); text-align: center; margin: 2rem 0; }
+		.skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+		.skip-link:focus { position: static; width: auto; height: auto; padding: .5rem .75rem; background: var(--focus); color: #000; border-radius: 6px; }
+		.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+	</style>
+</head>
+<body>
+	<a class="skip-link" href="#main">Skip to main content</a>
+
+	<header class="site-header" role="banner">
+		<div class="container">
+			<h1>Paper-to-Podcast • Config Wizard</h1>
+			<p class="subtitle">Current Protocol Version 1.7, Supports versions 1.6+</p>
+		</div>
+	</header>
+
+	<main id="main" class="container" role="main">
+		<section aria-labelledby="import-review-title" class="card">
+			<h2 id="import-review-title">Import or review JSON</h2>
+			<p id="import-help">Paste a JSON config, then press Import. Safe Import: Any user created top-level fields are preserved under Additional Settings. Custom value entries in fields will be display as “Other” and display text field.</p>
+			<div class="stack">
+				<label for="importJson" class="block-label">Click to review / import JSON</label>
+				<textarea id="importJson" class="mono" rows="8" aria-describedby="import-help" placeholder='{"name":"Paper-to-Podcast","version":"1.7", ...}'></textarea>
+				<div class="row">
+					<button id="btnImport" type="button">Import</button>
+					<button id="btnClearImport" type="button" class="secondary">Clear</button>
+					<div role="status" aria-live="polite" class="status" id="importStatus"></div>
+				</div>
+			</div>
+		</section>
+
+		<form id="wizardForm" novalidate>
+			<fieldset class="card">
+				<legend>Core</legend>
+				<div class="grid-2">
+					<label>Protocol version
+						<select id="protocol_version" aria-describedby="versionHelp">
+							<option value="1.7" selected>1.7 (current)</option>
+							<option value="1.6">1.6 (legacy)</option>
+						</select>
+					</label>
+					<label>Profile name
+						<input id="name" type="text" autocomplete="off" value="Paper-to-Podcast">
+					</label>
+					<label>Goal
+						<input id="goal" type="text" autocomplete="off" value="Convert user-provided research into long, TTS-friendly podcast monologues with clear analysis and minimal hype.">
+						<p class="small">Lets the Assistant focus in on how to treat the sources</p>
+					</label>
+					<label>Audience
+						<input id="audience" type="text" autocomplete="off" value="Technical listeners seeking clarity without marketing.">
+						<p class="small">Defines the feel of the monolog and what you get out of it</p>
+					</label>
+				</div>
+				<p id="versionHelp" class="small">Switching versions hides fields not in that protocol and excludes them from export. Upgrading from 1.6 → 1.7 adds canonical segment toggles.</p>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Host voice</legend>
+				<div class="grid-2">
+					<label>Tone
+						<input id="host_tone" type="text" placeholder="cynical, witty, objective, conversational" value="">
+						<p class="small">Adjectives work well here</p>
+					</label>
+					<label>Delivery
+						<input id="host_delivery" type="text" placeholder="continuous spoken monologue (no lists, no inline citations, no headings)" value="continuous spoken monologue (no lists, no inline citations, no headings)">
+						<p class="small">Current TTS's have issues with special characters</p>
+					</label>
+					<label>Style (comma separated)
+						<input id="host_style" type="text" placeholder="critical analysis, anecdotal comparisons, dry humor (light)" value="">
+						<p class="small">Host delievery and method of conveying context</p>
+					</label>
+					<label>Avoid (comma separated)
+						<input id="host_avoid" type="text" placeholder="situational references like 'in the car', 'at the gym', 'on your walk', driving/workout/etc metaphors, cursing" value="">
+					</label>
+				</div>
+				<label class="inline">
+					<input id="host_overrides" type="checkbox" checked> Allow host voice overrides in config
+				</label>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Scope</legend>
+				<div class="grid-2">
+					<fieldset>
+						<legend>Inputs</legend>
+						<label class="inline"><input type="checkbox" name="scope_inputs" value="PDFs/abstracts" checked> PDFs/abstracts</label>
+						<label class="inline"><input type="checkbox" name="scope_inputs" value="official repos/docs" checked> Official repos/docs</label>
+						<label class="inline"><input type="checkbox" name="scope_inputs" value="figures/tables" checked> Figures/tables</label>
+						<label class="inline"><input type="checkbox" name="scope_inputs" value="leaderboards/release notes" checked> Leaderboards/release notes</label>
+					</fieldset>
+					<label>Exclusions (comma separated)
+						<input id="scope_exclusions" type="text" value="speculative backstories, marketing claims without evidence">
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Length & fidelity</legend>
+				<label>Coverage ratio minimum
+					<input id="coverage_min" type="number" min="0.85" max="1" step="0.01" value="0.85" aria-describedby="coverage-help">
+				</label>
+				<p id="coverage-help" class="small">Protocol floor is 0.85. For long sources, narration typically targets ~3,000–4,000 words.</p>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>TTS rules (read-only)</legend>
+				<p class="mono small">Forbidden: markdown headings, unordered/ordered lists, ASCII art or unicode decorations, horizontal rules, inline code fences.</p>
+				<p class="small">Tables, images, and charts must be converted to descriptive narration. Output is a continuous monologue plus a single-line Sources sentence.</p>
+			</fieldset>
+
+			<fieldset class="card" id="fieldset_segment_toggles">
+				<legend>Segments • canonical toggles (v1.7)</legend>
+				<div class="grid-3">
+					<fieldset>
+						<legend>Force include</legend>
+						<div id="force_include" class="segment-list"></div>
+					</fieldset>
+					<fieldset>
+						<legend>Prefer</legend>
+						<div id="prefer" class="segment-list"></div>
+					</fieldset>
+					<fieldset>
+						<legend>Forbid</legend>
+						<div id="forbid" class="segment-list"></div>
+					</fieldset>
+				</div>
+				<p class="small">A segment can live in only one bucket. Putting it in one unchecks it in the others.</p>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Sidebars</legend>
+				<div class="row">
+					<legend class="sr-only">Enable sidebars</legend>
+					<label class="inline"><input type="radio" name="sidebar_enabled" value="yes" checked> Enabled</label>
+					<label class="inline"><input type="radio" name="sidebar_enabled" value="no"> Disabled</label>
+				</div>
+				<hr />
+				<div class="grid-3" id="sidebar_fields">
+					<label>Max sentences
+						<input id="sidebar_max_sentences" type="number" min="1" max="8" value="4">
+					</label>
+					<label>Max frequency
+						<select id="sidebar_max_freq">
+							<option value="~3min">~3min</option>
+							<option value="~5min">~5min</option>
+						</select>
+						<input id="sidebar_max_freq_other" type="text" class="hidden" aria-label="Other frequency value">
+					</label>
+					<label>Return transition
+						<input id="sidebar_return" type="text" value="Snap back with one transition line.">
+					</label>
+					<label>Claims policy
+						<input id="sidebar_claims" type="text" value="Restate claim and assess correctness with concise reasoning.">
+					</label>
+					<label>TTS format
+						<input id="sidebar_tts" type="text" value="Sidebars are plain paragraphs; no headings.">
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Citations</legend>
+				<div class="grid-3">
+					<label>Rule
+						<input id="citations_rule" type="text" value="No inline citation notation in narration. Append a compact sources sentence after the monologue.">
+					</label>
+					<label>Render
+						<input id="citations_render" type="text" value="Use a single plain line beginning with 'Sources:' and list items in terse natural language.">
+					</label>
+					<label>Consistency
+						<input id="citations_consistency" type="text" value="Every stated number/claim maps to a listed source.">
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Continue behavior</legend>
+				<div class="grid-2">
+					<label>Listener prompt
+						<input id="continue_prompt" type="text" value="Say 'continue' if output is cut by token limits.">
+					</label>
+					<label>Behavior
+						<input id="continue_behavior" type="text" value="Resume exactly where it left off without rehash.">
+					</label>
+				</div>
+			</fieldset>
+
+			<fieldset class="card">
+				<legend>Additional settings</legend>
+				<p class="small">Add custom top-level keys. Values must be valid JSON (examples: <span class="mono">"value"</span>, <span class="mono">123</span>, <span class="mono">true</span>, <span class="mono">[1,2]</span>, <span class="mono">{ "k": "v" }</span>).</p>
+				<table class="kv" role="table" aria-describedby="kv-help">
+					<thead>
+						<tr><th scope="col">Key</th><th scope="col">JSON value</th><th scope="col">Actions</th></tr>
+					</thead>
+					<tbody id="kvBody"></tbody>
+				</table>
+				<p id="kv-help" class="small">Errors appear inline and are announced. Focusing a value field hides its error.</p>
+				<div class="row">
+					<button id="btnAddKV" type="button" class="secondary">Add key/value</button>
+				</div>
+			</fieldset>
+
+			<section class="card" aria-labelledby="export-title">
+				<h2 id="export-title">Export</h2>
+				<div class="row">
+					<button id="btnExport" type="button">Build JSON</button>
+					<button id="btnCopy" type="button" class="secondary">Copy to clipboard</button>
+					<div role="status" aria-live="polite" class="status" id="exportStatus"></div>
+				</div>
+				<label for="exportJson" class="block-label">Result</label>
+				<textarea id="exportJson" class="mono" rows="12" readonly aria-live="off"></textarea>
+			</section>
+		</form>
+
+		<footer class="site-footer">
+			<p>Spec: Paper-to-Podcast Protocol v1.6–1.7. Docs license: CC BY 4.0. Code license: MIT.</p>
+			<p><a href="https://choosealicense.com/licenses/" target="_blank" rel="noopener noreferrer">https://choosealicense.com/licenses/</a></p>
+		</footer>
+	</main>
+
+	<script>
+		(function() {
+			"use strict";
+
+			/* ========= Versioned templates registry =========
+			   Each version embeds its own defaults so future changes don't corrupt older exports. */
+			const TEMPLATES = {
+				"1.6": {
+					name: "Paper-to-Podcast",
+					version: "1.6",
+					goal: "Convert user-provided research into long, TTS-friendly podcast monologues with clear analysis and minimal hype.",
+					audience: "Technical listeners seeking clarity without marketing.",
+					host_voice: {
+						tone: "cynical, witty, objective, conversational",
+						style: ["critical analysis","anecdotal comparisons","dry humor (light)"],
+						delivery: "continuous spoken monologue (no lists, no inline citations, no headings)",
+						avoid: ["situational references like 'in the car' or driving metaphors"]
+					},
+					scope: {
+						inputs: ["PDFs/abstracts","official repos/docs","figures/tables","leaderboards/release notes"],
+						exclusions: ["speculative backstories","marketing claims without evidence"]
+					},
+					length_and_fidelity: { coverage_ratio_min: 0.85 },
+					tts_rules: {
+						forbidden: ["markdown headings","unordered/ordered lists","ASCII art or unicode decorations","horizontal rules","inline code fences"],
+						table_image_chart_policy: "Convert into flowing paragraphs with descriptive narration; no headings.",
+						output_shape: "one continuous monologue paragraph stream, followed by a single-line sources sentence."
+					},
+					sidebar: {
+						enabled: true,
+						max_sentences: 4,
+						max_freq: "~3min",
+						return: "Snap back with one transition line.",
+						claims: "When a prescriptive or absolute claim appears, insert a sidebar that restates it and assesses correctness with concise reasoning.",
+						tts_format: "Sidebars are plain paragraphs; no headings."
+					},
+					citations: {
+						rule: "No inline citation notation in narration. Append a compact sources sentence after the monologue.",
+						render: "Use a single plain line beginning with 'Sources:' and list items in terse natural language.",
+						consistency: "Every stated number/claim maps to a listed source."
+					},
+					continue: {
+						listener_prompt: "Say 'continue' if output is cut by token limits.",
+						behavior: "Resume exactly where it left off without rehash."
+					},
+					customization: {
+						host_voice_overrides: true
+						/* v1.6 had no canonical segment_toggles */
+					},
+					license: { docs: "CC BY 4.0", code: "MIT" }
+				},
+				"1.7": {
+					name: "Paper-to-Podcast",
+					version: "1.7",
+					goal: "Convert user-provided research into long, TTS-friendly podcast monologues with clear analysis and minimal hype.",
+					audience: "Technical listeners seeking clarity without marketing.",
+					host_voice: {
+						tone: "cynical, witty, objective, conversational",
+						style: ["critical analysis","anecdotal comparisons","dry humor (light)"],
+						delivery: "continuous spoken monologue (no lists, no inline citations, no headings)",
+						avoid: ["situational references like 'in the car' or driving metaphors"]
+					},
+					scope: {
+						inputs: ["PDFs/abstracts","official repos/docs","figures/tables","leaderboards/release notes"],
+						exclusions: ["speculative backstories","marketing claims without evidence"]
+					},
+					length_and_fidelity: { coverage_ratio_min: 0.85 },
+					tts_rules: {
+						forbidden: ["markdown headings","unordered/ordered lists","ASCII art or unicode decorations","horizontal rules","inline code fences"],
+						table_image_chart_policy: "Convert into flowing paragraphs with descriptive narration; no headings.",
+						output_shape: "one continuous monologue paragraph stream, followed by a single-line sources sentence."
+					},
+					sidebar: {
+						enabled: true,
+						max_sentences: 4,
+						max_freq: "~3min",
+						return: "Snap back with one transition line.",
+						claims: "When a prescriptive or absolute claim appears, insert a sidebar that restates it and assesses correctness with concise reasoning.",
+						tts_format: "Sidebars are plain paragraphs; no headings."
+					},
+					citations: {
+						rule: "No inline citation notation in narration. Append a compact sources sentence after the monologue.",
+						render: "Use a single plain line beginning with 'Sources:' and list items in terse natural language.",
+						consistency: "Every stated number/claim maps to a listed source."
+					},
+					continue: {
+						listener_prompt: "Say 'continue' if output is cut by token limits.",
+						behavior: "Resume exactly where it left off without rehash."
+					},
+					customization: {
+						host_voice_overrides: true,
+						segment_toggles: { force_include: [], prefer: [], forbid: [] }
+					},
+					license: { docs: "CC BY 4.0", code: "MIT" }
+				}
+			};
+
+			/* ========= Field/version matrix =========
+			   Simple gate: which UI sections exist in which versions. */
+			const FIELD_MATRIX = {
+				segment_toggles: { min: "1.7" } // present only in 1.7+
+			};
+
+			const CORE_SEGMENTS = [
+				"cold_open","what_is_it","how_it_works","results_check","ablation_read",
+				"comparative_context","anecdotes","hype_sanitizer","claim_scrutiny",
+				"ops_notes","so_what","threat_model","eval_forensics","lightning_QA","closing"
+			];
+			const CORE_SCOPE_INPUTS = ["PDFs/abstracts","official repos/docs","figures/tables","leaderboards/release notes"];
+			const CORE_SIDEBAR_FREQ = ["~3min","~5min"];
+
+			// Elements
+			const el = {
+				importJson: document.getElementById("importJson"),
+				btnImport: document.getElementById("btnImport"),
+				btnClearImport: document.getElementById("btnClearImport"),
+				importStatus: document.getElementById("importStatus"),
+				form: document.getElementById("wizardForm"),
+				versionSelect: document.getElementById("protocol_version"),
+				name: document.getElementById("name"),
+				goal: document.getElementById("goal"),
+				audience: document.getElementById("audience"),
+				host_tone: document.getElementById("host_tone"),
+				host_delivery: document.getElementById("host_delivery"),
+				host_style: document.getElementById("host_style"),
+				host_avoid: document.getElementById("host_avoid"),
+				host_overrides: document.getElementById("host_overrides"),
+				scope_exclusions: document.getElementById("scope_exclusions"),
+				coverage_min: document.getElementById("coverage_min"),
+				force_include: document.getElementById("force_include"),
+				prefer: document.getElementById("prefer"),
+				forbid: document.getElementById("forbid"),
+				fieldset_segment_toggles: document.getElementById("fieldset_segment_toggles"),
+				sidebarRadios: document.querySelectorAll('input[name="sidebar_enabled"]'),
+				sidebarFields: document.getElementById("sidebar_fields"),
+				sidebar_max_sentences: document.getElementById("sidebar_max_sentences"),
+				sidebar_max_freq: document.getElementById("sidebar_max_freq"),
+				sidebar_max_freq_other: document.getElementById("sidebar_max_freq_other"),
+				sidebar_return: document.getElementById("sidebar_return"),
+				sidebar_claims: document.getElementById("sidebar_claims"),
+				sidebar_tts: document.getElementById("sidebar_tts"),
+				citations_rule: document.getElementById("citations_rule"),
+				citations_render: document.getElementById("citations_render"),
+				citations_consistency: document.getElementById("citations_consistency"),
+				continue_prompt: document.getElementById("continue_prompt"),
+				continue_behavior: document.getElementById("continue_behavior"),
+				kvBody: document.getElementById("kvBody"),
+				btnAddKV: document.getElementById("btnAddKV"),
+				btnExport: document.getElementById("btnExport"),
+				btnCopy: document.getElementById("btnCopy"),
+				exportJson: document.getElementById("exportJson"),
+				exportStatus: document.getElementById("exportStatus")
+			};
+
+			// Init segment checkboxes
+			function buildSegmentLists() {
+				["force_include","prefer","forbid"].forEach(bucket => {
+					el[bucket].innerHTML = "";
+					CORE_SEGMENTS.forEach(id => {
+						const label = document.createElement("label");
+						label.className = "inline";
+						const cb = document.createElement("input");
+						cb.type = "checkbox";
+						cb.value = id;
+						cb.dataset.bucket = bucket;
+						cb.addEventListener("change", onSegmentCheck);
+						label.appendChild(cb);
+						label.append(" " + id);
+						el[bucket].appendChild(label);
+					});
+				});
+			}
+
+			function onSegmentCheck(e) {
+				const id = e.target.value;
+				const myBucket = e.target.dataset.bucket;
+				if (e.target.checked) {
+					["force_include","prefer","forbid"].forEach(b => {
+						if (b !== myBucket) {
+							Array.from(el[b].querySelectorAll('input[type="checkbox"]')).forEach(cb => {
+								if (cb.value === id) cb.checked = false;
+							});
+						}
+					});
+				}
+			}
+
+			// Helpers
+			function byName(name) { return Array.from(document.querySelectorAll('[name="'+name+'"]')); }
+			function getCheckedValues(name) { return byName(name).filter(i => i.checked).map(i => i.value); }
+			function setCheckedValues(name, values) { byName(name).forEach(i => i.checked = values.includes(i.value)); }
+			function clampCoverage() {
+				const v = parseFloat(el.coverage_min.value || "0.85");
+				if (isNaN(v) || v < 0.85) { el.coverage_min.value = "0.85"; }
+				if (v > 1) { el.coverage_min.value = "1.00"; }
+			}
+			function commaListToArray(str) { return (str || "").split(",").map(s => s.trim()).filter(Boolean); }
+			function arrayToCommaList(arr) { return (arr || []).join(", "); }
+			function status(node, msg) { node.textContent = msg; }
+			function escapeHtml(s) { return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+			function cmpVer(a, b) {
+				const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+				for (let i=0; i<Math.max(pa.length,pb.length); i++) {
+					const da = pa[i] || 0, db = pb[i] || 0;
+					if (da < db) return -1; if (da > db) return 1;
+				}
+				return 0;
+			}
+			function supports(fieldKey, version) {
+				const gate = FIELD_MATRIX[fieldKey];
+				if (!gate) return true;
+				return cmpVer(version, gate.min) >= 0;
+			}
+
+			// Sidebar enable/disable
+			function applySidebarEnabled() {
+				const enabled = Array.from(el.sidebarRadios).find(r => r.checked && r.value === "yes") != null;
+				Array.from(el.sidebarFields.querySelectorAll("input,select")).forEach(x => { x.disabled = !enabled; });
+			}
+
+			// KV rows
+			function addKVRow(k = "", v = "") {
+				const tr = document.createElement("tr");
+				tr.innerHTML = `
+					<td><input type="text" class="kv-key" value="${escapeHtml(k)}" aria-label="Key"></td>
+					<td>
+						<textarea class="kv-value mono" rows="2" aria-label="JSON value">${escapeHtml(typeof v === "string" ? v : JSON.stringify(v))}</textarea>
+						<div class="error" role="alert" aria-live="polite"></div>
+					</td>
+					<td class="actions">
+						<div class="row">
+							<button type="button" class="secondary btnDel">Remove</button>
+							<button type="button" class="secondary btnValidate">Validate</button>
+						</div>
+					</td>`;
+				const val = tr.querySelector(".kv-value");
+				const err = tr.querySelector(".error");
+				const btnDel = tr.querySelector(".btnDel");
+				const btnVal = tr.querySelector(".btnValidate");
+				val.addEventListener("blur", () => {
+					try { JSON.parse(val.value); err.textContent = ""; }
+					catch { err.textContent = "Value must be valid JSON (e.g., \"text\", 123, true, [1,2], {\"k\":\"v\"})."; }
+				});
+				val.addEventListener("focus", () => { err.textContent = ""; });
+				btnVal.addEventListener("click", () => val.dispatchEvent(new Event("blur")));
+				btnDel.addEventListener("click", () => tr.remove());
+				el.kvBody.appendChild(tr);
+			}
+
+			function collectKV() {
+				const rows = Array.from(el.kvBody.querySelectorAll("tr"));
+				const out = {};
+				for (const tr of rows) {
+					const k = tr.querySelector(".kv-key").value.trim();
+					const vText = tr.querySelector(".kv-value").value;
+					const err = tr.querySelector(".error");
+					if (!k) continue;
+					try { const val = JSON.parse(vText); err.textContent = ""; out[k] = val; }
+					catch { err.textContent = "Invalid JSON value."; throw new Error("Invalid JSON in Additional settings."); }
+				}
+				return out;
+			}
+
+			// Fill form from a template+config
+			function fillFormFromConfig(cfg, imported = false) {
+				el.name.value = cfg.name || "";
+				el.goal.value = cfg.goal || "";
+				el.audience.value = cfg.audience || "";
+
+				const hv = cfg.host_voice || {};
+				el.host_tone.value = hv.tone || "";
+				el.host_delivery.value = hv.delivery || "";
+				el.host_style.value = arrayToCommaList(hv.style || []);
+				el.host_avoid.value = arrayToCommaList(hv.avoid || "");
+				el.host_overrides.checked = !!(cfg.customization && cfg.customization.host_voice_overrides);
+
+				const sc = cfg.scope || {};
+				setCheckedValues("scope_inputs", sc.inputs || []);
+				el.scope_exclusions.value = arrayToCommaList(sc.exclusions || []);
+
+				el.coverage_min.value = (cfg.length_and_fidelity && cfg.length_and_fidelity.coverage_ratio_min != null)
+					? String(cfg.length_and_fidelity.coverage_ratio_min) : "0.85";
+				clampCoverage();
+
+				// Segment toggles (only fill if section is supported and present)
+				const ver = el.versionSelect.value;
+				if (supports("segment_toggles", ver)) {
+					const seg = (cfg.customization && cfg.customization.segment_toggles) || {force_include:[],prefer:[],forbid:[]};
+					["force_include","prefer","forbid"].forEach(bucket => {
+						Array.from(el[bucket].querySelectorAll('input[type="checkbox"]')).forEach(cb => {
+							cb.checked = (seg[bucket] || []).includes(cb.value);
+						});
+					});
+				}
+
+				// Sidebar
+				const sb = cfg.sidebar || {};
+				const enabled = sb.enabled !== false;
+				Array.from(el.sidebarRadios).forEach(r => { r.checked = (r.value === (enabled ? "yes" : "no")); });
+				applySidebarEnabled();
+				el.sidebar_max_sentences.value = sb.max_sentences != null ? sb.max_sentences : 4;
+				const freq = sb.max_freq || "~3min";
+				if (!CORE_SIDEBAR_FREQ.includes(freq) && imported) {
+					el.sidebar_max_freq_other.classList.remove("hidden");
+					el.sidebar_max_freq.value = CORE_SIDEBAR_FREQ[0];
+					el.sidebar_max_freq_other.value = freq;
+				} else {
+					el.sidebar_max_freq_other.classList.add("hidden");
+					el.sidebar_max_freq_other.value = "";
+					el.sidebar_max_freq.value = CORE_SIDEBAR_FREQ.includes(freq) ? freq : CORE_SIDEBAR_FREQ[0];
+				}
+				el.sidebar_return.value = sb.return || "Snap back with one transition line.";
+				el.sidebar_claims.value = sb.claims || "Restate claim and assess correctness with concise reasoning.";
+				el.sidebar_tts.value = sb.tts_format || "Sidebars are plain paragraphs; no headings.";
+
+				// Citations
+				const ci = cfg.citations || {};
+				el.citations_rule.value = ci.rule || "";
+				el.citations_render.value = ci.render || "";
+				el.citations_consistency.value = ci.consistency || "";
+
+				// Continue
+				const cont = cfg.continue || {};
+				el.continue_prompt.value = cont.listener_prompt || "Say 'continue' if output is cut by token limits.";
+				el.continue_behavior.value = cont.behavior || "Resume exactly where it left off without rehash.";
+
+			}
+
+			function buildDefaultConfigFor(version) {
+				// Deep clone template for selected version
+				return JSON.parse(JSON.stringify(TEMPLATES[version]));
+			}
+
+			function gatherConfigFromForm() {
+				const version = el.versionSelect.value;
+				clampCoverage();
+
+				const sidebarEnabled = Array.from(el.sidebarRadios).some(r => r.checked && r.value === "yes");
+				const freqSel = el.sidebar_max_freq.value;
+				const freqOther = el.sidebar_max_freq_other.value.trim();
+				const maxFreq = freqOther ? freqOther : freqSel;
+
+				// Start from the version template to ensure required shape and embedded version
+				const cfg = buildDefaultConfigFor(version);
+
+				// Core
+				cfg.name = el.name.value.trim() || "Paper-to-Podcast";
+				cfg.goal = el.goal.value.trim() || cfg.goal;
+				cfg.audience = el.audience.value.trim() || cfg.audience;
+
+				// Host voice
+				cfg.host_voice = cfg.host_voice || {};
+				cfg.host_voice.tone = el.host_tone.value.trim();
+				cfg.host_voice.style = commaListToArray(el.host_style.value);
+				cfg.host_voice.delivery = el.host_delivery.value.trim();
+				cfg.host_voice.avoid = commaListToArray(el.host_avoid.value);
+
+				// Scope
+				cfg.scope = cfg.scope || {};
+				cfg.scope.inputs = getCheckedValues("scope_inputs");
+				cfg.scope.exclusions = commaListToArray(el.scope_exclusions.value);
+
+				// Length & fidelity
+				cfg.length_and_fidelity = cfg.length_and_fidelity || {};
+				cfg.length_and_fidelity.coverage_ratio_min = parseFloat(el.coverage_min.value);
+
+				// Sidebar
+				cfg.sidebar = cfg.sidebar || {};
+				cfg.sidebar.enabled = sidebarEnabled;
+				cfg.sidebar.max_sentences = parseInt(el.sidebar_max_sentences.value || "4", 10);
+				cfg.sidebar.max_freq = maxFreq;
+				cfg.sidebar.return = el.sidebar_return.value.trim();
+				cfg.sidebar.claims = el.sidebar_claims.value.trim();
+				cfg.sidebar.tts_format = el.sidebar_tts.value.trim();
+
+				// Citations
+				cfg.citations = cfg.citations || {};
+				cfg.citations.rule = el.citations_rule.value.trim();
+				cfg.citations.render = el.citations_render.value.trim();
+				cfg.citations.consistency = el.citations_consistency.value.trim();
+
+				// Continue
+				cfg.continue = cfg.continue || {};
+				cfg.continue.listener_prompt = el.continue_prompt.value.trim();
+				cfg.continue.behavior = el.continue_behavior.value.trim();
+
+				// Customization
+				cfg.customization = cfg.customization || {};
+				cfg.customization.host_voice_overrides = !!el.host_overrides.checked;
+
+				// Segment toggles only if supported by selected version
+				if (supports("segment_toggles", version)) {
+					cfg.customization.segment_toggles = {
+						force_include: collectSegmentBucket("force_include"),
+						prefer: collectSegmentBucket("prefer"),
+						forbid: collectSegmentBucket("forbid")
+					};
+				} else {
+					if (cfg.customization.segment_toggles) { delete cfg.customization.segment_toggles; }
+				}
+
+				// License
+				cfg.license = { docs: "CC BY 4.0" , code: "MIT" };
+
+				// Merge Additional settings (top-level only), without clobbering core keys
+				const kv = collectKV();
+				for (const k of Object.keys(kv)) {
+					if (Object.prototype.hasOwnProperty.call(cfg, k)) {
+						cfg._custom = cfg._custom || {};
+						cfg._custom[k] = kv[k];
+					} else {
+						cfg[k] = kv[k];
+					}
+				}
+				return cfg;
+			}
+
+			function collectSegmentBucket(bucket) {
+				return Array.from(el[bucket].querySelectorAll('input[type="checkbox"]'))
+					.filter(cb => cb.checked)
+					.map(cb => cb.value);
+			}
+
+			// Version gating: show/hide UI for features by version
+			function applyVersionVisibility(version) {
+				// Segment toggles fieldset
+				el.fieldset_segment_toggles.classList.toggle("hidden", !supports("segment_toggles", version));
+			}
+
+			// Import
+			function doImport() {
+				const raw = el.importJson.value.trim();
+				if (!raw) { status(el.importStatus, "Nothing to import."); return; }
+				let parsed;
+				try { parsed = JSON.parse(raw); }
+				catch { status(el.importStatus, "Invalid JSON."); return; }
+
+				const importedVer = String(parsed.version || "");
+				const currentVer = el.versionSelect.value;
+
+				// Version notice
+				if (importedVer && importedVer !== currentVer) {
+					if (cmpVer(importedVer, currentVer) < 0) {
+						status(el.importStatus, `Imported v${importedVer}. You are on v${currentVer}. You can keep legacy v${importedVer} (select it) or export as v${currentVer} to upgrade.`);
+					} else {
+						status(el.importStatus, `Imported future v${importedVer}. Some fields may be ignored when exporting as v${currentVer}.`);
+					}
+					// Sync selector to import version by default, so users see exactly what they brought
+					if (TEMPLATES[importedVer]) {
+						el.versionSelect.value = importedVer;
+						applyVersionVisibility(importedVer);
+					}
+				} else {
+					status(el.importStatus, "Imported configuration.");
+				}
+
+				// Build segment UI fresh
+				buildSegmentLists();
+
+				// Fill form
+				fillFormFromConfig(parsed, /* imported */ true);
+
+				// Unknown top-level keys → Additional settings
+				const known = new Set([
+					"name","version","goal","audience","host_voice","scope","length_and_fidelity","tts_rules",
+					"segments","segment_rules","sidebar","citations","humor","safety","workflow","continue",
+					"customization","license","_custom"
+				]);
+				el.kvBody.innerHTML = "";
+				Object.keys(parsed).forEach(k => {
+					if (!known.has(k)) addKVRow(k, parsed[k]);
+				});
+			}
+
+			// Export
+			function doExport() {
+				try {
+					const cfg = gatherConfigFromForm();
+					document.getElementById("exportJson").value = JSON.stringify(cfg);
+					status(el.exportStatus, "Built JSON.");
+				} catch (e) {
+					document.getElementById("exportJson").value = "";
+					status(el.exportStatus, e.message || "Export failed.");
+				}
+			}
+
+			function copyExport() {
+				if (!el.exportJson.value) { status(el.exportStatus, "Nothing to copy."); return; }
+				el.exportJson.select();
+				document.execCommand("copy");
+				status(el.exportStatus, "Copied to clipboard.");
+			}
+
+			// Init
+			function init() {
+				buildSegmentLists();
+				applyVersionVisibility(el.versionSelect.value);
+				fillFormFromConfig(buildDefaultConfigFor(el.versionSelect.value), /* imported */ false);
+
+				el.btnImport.addEventListener("click", doImport);
+				el.btnClearImport.addEventListener("click", () => { el.importJson.value = ""; status(el.importStatus, ""); });
+				el.versionSelect.addEventListener("change", () => {
+					const v = el.versionSelect.value;
+					applyVersionVisibility(v);
+					// Re-seed with that version's template but keep user text where sensible
+					const cfg = buildDefaultConfigFor(v);
+					// Try to keep current general fields (name/goal/audience, host voice, scope, etc.)
+					cfg.name = el.name.value.trim() || cfg.name;
+					cfg.goal = el.goal.value.trim() || cfg.goal;
+					cfg.audience = el.audience.value.trim() || cfg.audience;
+					cfg.host_voice.tone = el.host_tone.value.trim() || cfg.host_voice.tone;
+					cfg.host_voice.style = commaListToArray(el.host_style.value) || cfg.host_voice.style;
+					cfg.host_voice.delivery = el.host_delivery.value.trim() || cfg.host_voice.delivery;
+					cfg.host_voice.avoid = commaListToArray(el.host_avoid.value) || cfg.host_voice.avoid;
+					cfg.scope.inputs = getCheckedValues("scope_inputs").length ? getCheckedValues("scope_inputs") : cfg.scope.inputs;
+					cfg.scope.exclusions = commaListToArray(el.scope_exclusions.value) || cfg.scope.exclusions;
+					cfg.length_and_fidelity.coverage_ratio_min = parseFloat(el.coverage_min.value) || cfg.length_and_fidelity.coverage_ratio_min;
+					cfg.sidebar.enabled = Array.from(el.sidebarRadios).some(r => r.checked && r.value === "yes");
+					cfg.sidebar.max_sentences = parseInt(el.sidebar_max_sentences.value || "4", 10);
+					cfg.sidebar.max_freq = el.sidebar_max_freq_other.value.trim() || el.sidebar_max_freq.value || cfg.sidebar.max_freq;
+					cfg.sidebar.return = el.sidebar_return.value.trim() || cfg.sidebar.return;
+					cfg.sidebar.claims = el.sidebar_claims.value.trim() || cfg.sidebar.claims;
+					cfg.sidebar.tts_format = el.sidebar_tts.value.trim() || cfg.sidebar.tts_format;
+					cfg.citations.rule = el.citations_rule.value.trim() || cfg.citations.rule;
+					cfg.citations.render = el.citations_render.value.trim() || cfg.citations.render;
+					cfg.citations.consistency = el.citations_consistency.value.trim() || cfg.citations.consistency;
+					cfg.continue.listener_prompt = el.continue_prompt.value.trim() || cfg.continue.listener_prompt;
+					cfg.continue.behavior = el.continue_behavior.value.trim() || cfg.continue.behavior;
+
+					fillFormFromConfig(cfg, /* imported */ false);
+				});
+				el.sidebarRadios.forEach(r => r.addEventListener("change", applySidebarEnabled));
+				el.coverage_min.addEventListener("blur", clampCoverage);
+				el.btnAddKV.addEventListener("click", () => addKVRow());
+				el.btnExport.addEventListener("click", doExport);
+				el.btnCopy.addEventListener("click", copyExport);
+			}
+			document.addEventListener("DOMContentLoaded", init);
+		})();
+	</script>
+</body>
+</html>

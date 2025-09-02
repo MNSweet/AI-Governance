@@ -1,8 +1,8 @@
-# AgentPad: Assistant-only memory protocol (v1.3.1)
+# AgentPad: Assistant-only memory protocol (v1.4.2)
 
 ## Overview
 
-AgentPad is a persistent, assistant-only memory system that operates at the thread level, complementing `to=bio` and `file_storage` while enhancing reasoning beyond the `context_window`. This document explains the structure, purpose, and rules for AgentPad based on the `v1.3.1` specification.
+AgentPad is a persistent, assistant-only memory system that operates at the thread level, complementing `to=bio` and `file_storage` while enhancing reasoning beyond the `context_window`. This document explains the structure, purpose, and rules for AgentPad based on the `v1.4.2` specification.
 
 ## Purpose
 
@@ -51,7 +51,7 @@ This is the schema. Format may be adjusted temporarily during upgrades, but shou
 {
   "AgentPad": {
     "metadata": {
-      "version": "v1.4",
+      "version": "v1.4.2",
       "timezone": "America/New_York",
       "purpose": "Persistent,AGENT-only operational memory.Survives reboot/session loss.",
       "version_control": "GitHub/MNSweet/AI-Governance",
@@ -83,7 +83,7 @@ This is the schema. Format may be adjusted temporarily during upgrades, but shou
           "mime_type": "image/png",
           "associated_with": "Keyword or phrase denoting relation",
           "checksum": "sha256:",
-          "on_disk": "stored | mising | expired",
+          "on_disk": "stored | missing | expired",
           "last_disk_check": "YYYY-MM-DDTHH:mm:ss.sssZ",
           "last_missing_file_notice": " | YYYY-MM-DDTHH:mm:ss.sssZ",
           "_onMissing": "request_restore | request_if_context_requires_rescan | request_if_ask_about_file | lapse"
