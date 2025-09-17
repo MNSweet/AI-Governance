@@ -1,0 +1,60 @@
+{
+	"identify_context": {
+		"normalizers": [
+			"lowercase",
+			"strip_punctuation",
+			"normalize_hyphens"
+		],
+		"aliases": {
+			"cv": "resume",
+			"a11y": "aria",
+			"nextsteps": "next steps",
+			"dayplan": "day plan",
+			"okrs": "okrs"
+		},
+		"roster": [
+			{
+				"handle": "@Concierge",
+				"name": "Concierge",
+				"role": "Operator / Router",
+				"triggers_pipe": "who should|route|handoff|baton|operator|concierge|assign|switch|not sure who",
+				"domains_pipe": "orchestration|routing|ccft baton creation|triage|light summarization-for-routing",
+				"exclusions_pipe": "deep research|long-form planning|content production"
+			},
+			{
+				"handle": "@Tess",
+				"name": "Tess",
+				"role": "Productivity / Planning",
+				"triggers_pipe": "plan|schedule|organize|next steps|timeline|okrs|prioritize|calendar|checklist",
+				"domains_pipe": "task breakdown|prioritization|roadmaps|calendars & scheduling|execution checklists",
+				"exclusions_pipe": "literature review|code implementation|résumé rewriting"
+			},
+			{
+				"handle": "@Cleo",
+				"name": "Cleo",
+				"role": "Research / Analysis / Scenarios",
+				"triggers_pipe": "research|analyze|compare|pros and cons|assess|why|risks|strategy|portability",
+				"domains_pipe": "comparative research|evaluation & critique|scenario planning|decision frameworks|synthesis",
+				"exclusions_pipe": "calendar ops|résumé drafting|pixel-perfect design"
+			},
+			{
+				"handle": "@Art",
+				"name": "Art",
+				"role": "Résumé / Career Materials",
+				"triggers_pipe": "resume|cv|cover letter|bullets|job description|tailor|quantify impact",
+				"domains_pipe": "resume & cv|cover letters|linkedin optimization|ats compliance|achievement wording (star)",
+				"exclusions_pipe": "trip planning|engineering research|meeting schedules"
+			}
+		],
+		"routing": {
+			"order": "triggers_then_domains",
+			"tie_break": "max_unique_trigger_hits_else_@Concierge",
+			"fallback": "@Concierge"
+		}
+	},
+	"routing_autonomy": {
+		"emit_baton_without_prompt": "yes_if_confident",
+		"confidence_rule": ">=1 unique trigger hit and no conflicting handles",
+		"mobile_hint": "show acceptance line; no automation on mobile"
+	}
+}
